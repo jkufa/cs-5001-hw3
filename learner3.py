@@ -8,13 +8,15 @@ DIMENSIONS = [6,8]
 GAMMA = 0.8  # Discount rate
 N = 10000  # Number of iterations
 INF = 9999999
+
 # Mapping of all rewards
 REWARDS = {
-  (1, 3): -10, #👹
-  (1, 6): 3, #🍩
+  (1, 3): 3, #🍩
+  (1, 6): -10, #👹
   (3, 3): -5, #🔥
   (3, 6): 10 #🍰
 }
+
 # Dictionary of all possible actions
 ACTIONS = {
   (1, 1): ("D"),
@@ -44,12 +46,14 @@ V={}
 for s in ALL_STATES:
     if s in ACTIONS.keys():
         V[s] = 0
-    if s in REWARDS.keys():
-        V[s] = REWARDS[s]
     else:
       V[s] = -1
+    if s in REWARDS.keys():
+        V[s] = REWARDS[s]
 
-#Define an initial policy
+R = V
+
+#Define initial policy
 POLICY={}
 for s in ACTIONS.keys():
     POLICY[s] = choice(ACTIONS[s])
@@ -72,14 +76,13 @@ def reward(l_prime):
     res = REWARDS[MAZE[l_prime[0]][l_prime[1]]]
     return res
 
-
+# TODO: finish exp_reward and prob functions, make sure v_next and v_prev are being set properly!
 def value_iteration():
-
     for i in range(N):
         for s in ALL_STATES:
-            v_next = -INF
             if s in POLICY:
-                v_prev = V[s]
+                old_v = V[s]
+                new_v = 0
 
                 for a in ACTIONS[s]:
                     nxt_sum = 0
@@ -91,19 +94,36 @@ def value_iteration():
                         nxt = (s[0], s[1]-1)
                     if a == 'R':
                         nxt = (s[0], s[1]+1)
-                    nxt_sum += .82 * v_prev
-                    v_tmp = exp_reward(s, a) + GAMMA * nxt_sum
-                    if v_tmp > v_next:
-                        v_next = v_tmp
+
+                    #Choose a new random action to do (transition probability)
+                    if len(ACTIONS[s]) > 1:
+                      rand = choice(ACTIONS[s])
+                      while rand == a:
+                        rand = choice(ACTIONS[s])
+                      if rand == 'U':
+                          act = (s[0]-1, s[1])
+                      elif rand == 'D':
+                          act = (s[0]+1, s[1])
+                      elif rand == 'L':
+                          act = (s[0], s[1]-1)
+                      elif rand == 'R':
+                          act = (s[0], s[1]+1)
+                      v_prob = V[act]
+                    else:
+                      v_prob = 0
+
+                    v = R[s] + (GAMMA * (.82 * V[nxt] + (.09 * v_prob)))
+
+                    if v > new_v:
+                        new_v = v
                         POLICY[s] = a
-                    V[s] = v_next
+                V[s] = new_v
 
 def optimal_policy():
     pass
 
 value_iteration()
 print(V)
-print("/n/n")
 
 for rc in POLICY.keys():
   print(rc, POLICY[rc])
