@@ -1,6 +1,7 @@
 # Value Iteration (Homework 3)
 # Jack Kufa Fall 2021
 
+from os import linesep
 from random import choice
 from copy import deepcopy
 
@@ -90,8 +91,9 @@ def value_iteration():
                 V[s] = new_v
 
 
-def print_output():
+def write_output(output_file):
     r = "+--------+--------+--------+--------+--------+--------+"
+    lines = []
     values = []
     actions = []
     for s in V:
@@ -114,7 +116,7 @@ def print_output():
             else:
                 values.append(str(V[s])[0:5])
                 actions.append(POLICY[s] + "  ")
-    print(
+    lines.append(
         "CS-5001: HW#3\nProgrammer: Jack Kufa\nDiscount Gamma = "
         + str(GAMMA)
         + "\n\nValues after "
@@ -128,19 +130,25 @@ def print_output():
             entry = values[0].rjust(6, " ")
             line += " " + entry + " |"
             values.pop(0)
-        print(line)
-        print(r)
+        lines.append(line)
+        lines.append(r)
 
-    print("\nPolicy:\n" + r)
+    lines.append("\nPolicy:\n" + r)
     for i in range(4):
         line = "|"
         for j in range(6):
             entry = actions[0].rjust(6, " ")
             line += " " + entry + " |"
             actions.pop(0)
-        print(line + "\n" + r)
+        lines.append(line + "\n" + r)
+
+    file = open(output_file, "w")
+    for line in lines:
+        file.write(line + "\n")
+        print(line)
+    file.close
 
 
 if __name__ == "__main__":
     value_iteration()
-    print_output()
+    write_output("learner3output.txt")
