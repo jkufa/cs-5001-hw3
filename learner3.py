@@ -1,17 +1,19 @@
-# start at random location
-# look at all directions around a cell, compute nextsum for each direction
-# a valid cell is a reachable cell (blank cell)
+# Value Iteration (Homework 3)
+# Jack Kufa Fall 2021
 
 from random import choice
 from copy import deepcopy
 
-DIMENSIONS = [6, 8]
 GAMMA = 0.8  # Discount rate
 N = 100000  # Number of iterations
 INF = 9999999
 
 # Mapping of all rewards
-REWARDS = {(1, 3): 3, (1, 6): -10, (3, 3): -5, (3, 6): 10}  # 🍩  # 👹  # 🔥  # 🍰
+REWARDS = {
+    (1, 3): 3, # 🍩 
+    (1, 6): -10,  # 👹  
+    (3, 3): -5, # 🔥  
+    (3, 6): 10}  # 🍰
 
 # Dictionary of all possible actions
 ACTIONS = {
@@ -47,7 +49,7 @@ for s in ALL_STATES:
     if s in REWARDS.keys():
         V[s] = REWARDS[s]
 
-R = deepcopy(V)
+R = deepcopy(V)  # original state, contains original values of all the rewards
 
 # Define initial policy
 POLICY = {}
@@ -55,20 +57,21 @@ for s in ACTIONS.keys():
     POLICY[s] = choice(ACTIONS[s])
 
 
-def prob(s, a, nxt):
-    p = 0.09
-    # determine if l_prime is the same direction as a and assign p to .82 if yes
-    return p
+def get_locations(a, s):
+    if a == "^":
+        # up left right
+        return (s[0] - 1, s[1]), (s[0], s[1] - 1), (s[0], s[1] + 1)
+    elif a == "v":
+        # down left right
+        return (s[0] + 1, s[1]), (s[0], s[1] - 1), (s[0], s[1] + 1)
+    elif a == "<":
+        # left up down
+        return (s[0], s[1] - 1), (s[0] - 1, s[1]), (s[0] + 1, s[1])
+    elif a == ">":
+        # right up down
+        return (s[0], s[1] + 1), (s[0] - 1, s[1]), (s[0] + 1, s[1])
 
 
-def exp_reward(l, a):
-    res = 0.0
-    # foreach location reachable from l after action a
-    # res += prob(l, a, l_prime) * reward(l, a, l_prime)
-    return res
-
-
-# TODO: finish exp_reward and prob functions, make sure v_next and v_prev are being set properly!
 def value_iteration():
     for i in range(N):
         for s in ALL_STATES:
@@ -76,27 +79,10 @@ def value_iteration():
                 new_v = -INF
 
                 for a in ACTIONS[s]:
-                    nxt_sum = 0
-                    alt_a1 = s
-                    alt_a2 = s
-                    if a == "^":
-                        nxt = (s[0] - 1, s[1])
-                        alt_a1 = (s[0], s[1] - 1)  # L
-                        alt_a2 = (s[0], s[1] + 1)  # R
-                    elif a == "v":
-                        nxt = (s[0] + 1, s[1])
-                        alt_a1 = (s[0], s[1] - 1)  # L
-                        alt_a2 = (s[0], s[1] + 1)  # R
-                    elif a == "<":
-                        nxt = (s[0], s[1] - 1)
-                        alt_a1 = (s[0] + 1, s[1])  # L
-                        alt_a2 = (s[0] - 1, s[1])  # R
-                    elif a == ">":
-                        nxt = (s[0], s[1] + 1)
-                        alt_a1 = (s[0] + 1, s[1])  # L
-                        alt_a2 = (s[0] - 1, s[1])  # R
+                    nxt, alt_a1, alt_a2 = get_locations(a, s)
+                    # perform probability calculations
                     nxt_sum = (0.82 * V[nxt]) + (0.09 * V[alt_a1]) + (0.09 * V[alt_a2])
-                    v = R[s] + GAMMA * nxt_sum # R[s] is sus
+                    v = R[s] + GAMMA * nxt_sum
 
                     if v > new_v:
                         new_v = v
@@ -154,9 +140,7 @@ def print_output():
             actions.pop(0)
         print(line + "\n" + r)
 
-value_iteration()
-print_output()
-# print(V)
 
-# for rc in POLICY.keys():
-#   print(rc, POLICY[rc])
+if __name__ == "__main__":
+    value_iteration()
+    print_output()
